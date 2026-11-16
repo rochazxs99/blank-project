@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AcompanhamentosRouteImport } from './routes/acompanhamentos'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as PacientesRouteImport } from './routes/pacientes'
+import { Route as PacientesIndexRouteImport } from './routes/pacientes.index'
 import { Route as PacientesPatientIdRouteImport } from './routes/pacientes.$patientId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +36,11 @@ const PacientesRoute = PacientesRouteImport.update({
   path: '/pacientes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PacientesIndexRoute = PacientesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PacientesRoute,
+} as any)
 const PacientesPatientIdRoute = PacientesPatientIdRouteImport.update({
   id: '/$patientId',
   path: '/$patientId',
@@ -47,13 +53,14 @@ export interface FileRoutesByFullPath {
   '/agenda': typeof AgendaRoute
   '/pacientes': typeof PacientesRouteWithChildren
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
+  '/pacientes/': typeof PacientesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/acompanhamentos': typeof AcompanhamentosRoute
   '/agenda': typeof AgendaRoute
-  '/pacientes': typeof PacientesRouteWithChildren
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
+  '/pacientes': typeof PacientesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,6 +69,7 @@ export interface FileRoutesById {
   '/agenda': typeof AgendaRoute
   '/pacientes': typeof PacientesRouteWithChildren
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
+  '/pacientes/': typeof PacientesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -71,13 +79,14 @@ export interface FileRouteTypes {
     | '/agenda'
     | '/pacientes'
     | '/pacientes/$patientId'
+    | '/pacientes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/acompanhamentos'
     | '/agenda'
-    | '/pacientes'
     | '/pacientes/$patientId'
+    | '/pacientes'
   id:
     | '__root__'
     | '/'
@@ -85,6 +94,7 @@ export interface FileRouteTypes {
     | '/agenda'
     | '/pacientes'
     | '/pacientes/$patientId'
+    | '/pacientes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -124,6 +134,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PacientesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pacientes/': {
+      id: '/pacientes/'
+      path: '/'
+      fullPath: '/pacientes/'
+      preLoaderRoute: typeof PacientesIndexRouteImport
+      parentRoute: typeof PacientesRoute
+    }
     '/pacientes/$patientId': {
       id: '/pacientes/$patientId'
       path: '/$patientId'
@@ -136,10 +153,12 @@ declare module '@tanstack/react-router' {
 
 interface PacientesRouteChildren {
   PacientesPatientIdRoute: typeof PacientesPatientIdRoute
+  PacientesIndexRoute: typeof PacientesIndexRoute
 }
 
 const PacientesRouteChildren: PacientesRouteChildren = {
   PacientesPatientIdRoute: PacientesPatientIdRoute,
+  PacientesIndexRoute: PacientesIndexRoute,
 }
 
 const PacientesRouteWithChildren = PacientesRoute._addFileChildren(

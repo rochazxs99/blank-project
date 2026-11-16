@@ -1,4 +1,5 @@
 <!-- LOVABLE:BEGIN -->
+
 > [!IMPORTANT]
 > This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
 > published git history — force pushing, or rebasing/amending/squashing commits
@@ -27,4 +28,11 @@ use the editor.
   `LOVABLE_API_KEY`. When Lovable does not provide one, users can bring their
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
+
 <!-- LOVABLE:END -->
+
+## Application architecture
+
+- Keep the demonstration store in DoseProvider, mounted around DoseShell and Outlet in the root route, so navigation preserves local state without sending patient data to services.
+- Keep date calculations and validation in the browser-safe dosecerta module with rule tests, so all screens share the same administrative schedule logic.
+- Render the patient list in the pacientes index leaf and the parent as Outlet, so patient detail routes remain reachable.
