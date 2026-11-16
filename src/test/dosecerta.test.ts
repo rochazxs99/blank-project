@@ -1,0 +1,21 @@
+import { describe, expect, it } from 'vitest';
+import { nextDate, doseStatus, recordApplication, makeDemo, clearDemo, deletePatient, patientSchema } from '@/lib/dosecerta';
+describe('Regras administrativas', () => {
+  it('soma sete dias para frequência semanal', () => expect(nextDate('2026-12-28','Semanal')).toBe('2027-01-04'));
+  it('preserva o dia na frequência mensal', () => expect(nextDate('2026-04-15','Mensal')).toBe('2026-05-15'));
+  it('ajusta mensal ao último dia de fevereiro', () => expect(nextDate('2026-01-31','Mensal')).toBe('2026-02-28'));
+  it('respeita fevereiro bissexto', () => expect(nextDate('2028-01-31','Mensal')).toBe('2028-02-29'));
+  it('soma três meses e ajusta o dia na trimestral', () => expect(nextDate('2026-01-31','Trimestral')).toBe('2026-04-30'));
+  it('preserva dia trimestral quando possível', () => expect(nextDate('2026-11-12','Trimestral')).toBe('2027-02-12'));
+  it('considera o dia anterior atrasado', () => expect(doseStatus('2026-11-15','2026-11-16')).toBe('Atrasada'));
+  it('inclui hoje nas próximas', () => expect(doseStatus('2026-11-16','2026-11-16')).toBe('Próxima'));
+  it('inclui o sétimo dia nas próximas', () => expect(doseStatus('2026-11-23','2026-11-16')).toBe('Próxima'));
+  it('considera oito dias em dia', () => expect(doseStatus('2026-11-24','2026-11-16')).toBe('Em dia'));
+  it('registra aplicação preservando histórico e recalculando previsão', () => { const s=makeDemo('2020-11-16'); const n=recordApplication(s,'t1','2020-11-16','', 'new'); expect(n.history).toHaveLength(s.history.length+1); expect(n.history).toContainEqual(s.history[0]); expect(nextDate(n.treatments[0].last,n.treatments[0].frequency)).toBe('2020-11-23'); });
+  it('não permite registro anterior à última aplicação', () => expect(() => recordApplication(makeDemo('2020-11-16'),'t1','2020-11-01','','x')).toThrow('igual ou posterior'));
+  it('não permite duplicar aplicação no mesmo dia', () => expect(() => recordApplication(makeDemo('2020-11-16'),'t1','2020-11-09','','x')).toThrow('Já existe'));
+  it('não permite registrar em acompanhamento encerrado', () => expect(() => recordApplication(makeDemo('2020-11-16'),'t9','2020-11-16','','x')).toThrow('não está ativo'));
+  it('nome é obrigatório', () => expect(patientSchema.safeParse({name:'',phone:'',birth:'',notes:''}).success).toBe(false));
+  it('remove os exemplos sem apagar paciente criado', () => { const s=makeDemo('2020-11-16'); s.patients.push({id:'user',name:'Teste fictício',phone:'',birth:'',notes:'',demo:false}); const n=clearDemo(s); expect(n.patients.map(p=>p.id)).toEqual(['user']); expect(n.treatments).toEqual([]); expect(n.history).toEqual([]); });
+  it('exclui paciente e registros vinculados', () => { const n=deletePatient(makeDemo('2020-11-16'),'p1'); expect(n.patients.some(p=>p.id==='p1')).toBe(false); expect(n.treatments.some(t=>t.patientId==='p1')).toBe(false); expect(n.history.some(h=>h.treatmentId==='t1')).toBe(false); });
+});
